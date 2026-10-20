@@ -12,7 +12,23 @@ The project combines cinematic visuals, an interactive voxel environment, and at
 
 ## 🌐 Live Website
 
-**[Visit THE WEBSITE](https://minecraft-smp-website.vercel.app/)**
+Experience the website yourself!
+
+🚀 [Explore the Live Demo ↗](https://minecraft-smp-website.vercel.app/)
+
+Explore the cinematic Minecraft-inspired design, interactive voxel world, and immersive ambience.
+
+> ⚠️ Demo Notice: This is a live demo. The Minecraft server IP and Discord invite are placeholders and may not work.
+
+*Deployed with ❤️ using Vercel.*
+
+## 🛠️ Make It Your Own
+
+Want to use this website for your own Minecraft SMP? You can customize the server name, Minecraft server IP, Discord invite, branding, and more!
+
+📖 **[Read the Make It Your SMP Website Guide](make-it-ur-smp-website.md)** for step-by-step instructions on personalizing the website to match your server.
+
+Make it yours, deploy it, and build your own Minecraft community! ⛏️🌍
 
 ## ✨ Features
 
