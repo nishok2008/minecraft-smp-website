@@ -6,13 +6,13 @@ A cinematic Minecraft-inspired website featuring an interactive voxel world, imm
 
 ## 🌍 About
 
-NISHOK-SMP is a Minecraft SMP website built to capture the spirit of exploration, civilization-building, and multiplayer adventures.
+A Minecraft SMP website built to capture the spirit of exploration, civilization-building, and multiplayer adventures.
 
 The project combines cinematic visuals, an interactive voxel environment, and atmospheric sound to create a unique digital experience.
 
 ## 🌐 Live Website
 
-**[Visit NISHOK-SMP](https://minecraft-smp-website.vercel.app/)**
+**[Visit THE WEBSITE](https://minecraft-smp-website.vercel.app/)**
 
 ## ✨ Features
 
