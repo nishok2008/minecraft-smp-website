@@ -592,6 +592,23 @@ html.has-cursor .cursor-dots {
 .ambience.is-on .ambience__bars i:nth-child(2) { animation-delay: 0.18s; }
 .ambience.is-on .ambience__bars i:nth-child(3) { animation-delay: 0.34s; }
 .ambience.is-on .ambience__bars i:nth-child(4) { animation-delay: 0.1s; }
+.ambience__credit {
+  margin-left: -0.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.48rem;
+  letter-spacing: 0.11em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--lime);
+  opacity: 0.55;
+  white-space: nowrap;
+  transition: opacity 0.3s ease;
+}
+@media (max-width: 340px) {
+  .ambience__credit {
+    display: none;
+  }
+}
 
 @keyframes eq {
   from { transform: scaleY(0.45); }
@@ -2754,6 +2771,10 @@ main {
   }
   .ambience__label {
     display: none;
+  }
+  .ambience__credit {
+    font-size: 0.44rem;
+    letter-spacing: 0.08em;
   }
   .ambience {
     padding: 0.5rem;

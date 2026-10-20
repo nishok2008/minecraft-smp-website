@@ -868,81 +868,134 @@ document.querySelectorAll("[data-copy-ip]").forEach((btn) => {
 });
 
 /* ══════════════════════════════════════════════════════════════
-   AMBIENCE (WEB AUDIO)
+   AMBIENCE (MUSIC PLAYER)
    ══════════════════════════════════════════════════════════════ */
 
 const ambienceBtn = document.getElementById("ambience");
-let audioCtx = null;
-let masterGain = null;
+const AMBIENCE_VOLUME = 0.32;
+const ambienceAudio = new Audio();
+ambienceAudio.id = "ambienceAudio";
+ambienceAudio.src = `${import.meta.env.BASE_URL}audio/rizzlas-c418.mp3`;
+ambienceAudio.loop = true;
+ambienceAudio.preload = "none";
+ambienceAudio.volume = 0;
+ambienceAudio.hidden = true;
+document.body.appendChild(ambienceAudio);
+
 let ambienceOn = false;
+let fadeTween = null;
+let toggleToken = 0;
+let errorToastAt = 0;
 
-function buildAmbience() {
-  const Ctx = window.AudioContext || window.webkitAudioContext;
-  if (!Ctx) return false;
-  audioCtx = new Ctx();
-  masterGain = audioCtx.createGain();
-  masterGain.gain.value = 0;
-  masterGain.connect(audioCtx.destination);
-
-  const filter = audioCtx.createBiquadFilter();
-  filter.type = "lowpass";
-  filter.frequency.value = 480;
-  filter.Q.value = 0.4;
-  filter.connect(masterGain);
-
-  const notes = [55, 82.41, 110, 164.81, 220];
-  notes.forEach((freq, i) => {
-    const osc = audioCtx.createOscillator();
-    osc.type = i < 2 ? "sine" : "triangle";
-    osc.frequency.value = freq;
-    osc.detune.value = (i - 2) * 4;
-    const g = audioCtx.createGain();
-    g.gain.value = i === 0 ? 0.45 : 0.16 / (i + 1);
-    osc.connect(g);
-    g.connect(filter);
-    osc.start();
-  });
-
-  // soft wind
-  const length = Math.floor(audioCtx.sampleRate * 5);
-  const buffer = audioCtx.createBuffer(1, length, audioCtx.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < length; i++) data[i] = (Math.random() * 2 - 1) * 0.4;
-  const noise = audioCtx.createBufferSource();
-  noise.buffer = buffer;
-  noise.loop = true;
-  const nf = audioCtx.createBiquadFilter();
-  nf.type = "bandpass";
-  nf.frequency.value = 540;
-  nf.Q.value = 0.5;
-  const ng = audioCtx.createGain();
-  ng.gain.value = 0.05;
-  noise.connect(nf);
-  nf.connect(ng);
-  ng.connect(masterGain);
-  noise.start();
-
-  // slow filter drift
-  const lfo = audioCtx.createOscillator();
-  lfo.frequency.value = 0.06;
-  const lfoGain = audioCtx.createGain();
-  lfoGain.gain.value = 140;
-  lfo.connect(lfoGain);
-  lfoGain.connect(filter.frequency);
-  lfo.start();
-
-  return true;
+function syncAmbienceUI(on) {
+  if (!ambienceBtn) return;
+  ambienceBtn.classList.toggle("is-on", on);
+  ambienceBtn.setAttribute("aria-pressed", String(on));
+  ambienceBtn.setAttribute("aria-label", on ? "Turn ambient sound off" : "Turn ambient sound on");
 }
 
-ambienceBtn?.addEventListener("click", async () => {
-  if (!audioCtx && !buildAmbience()) return;
-  if (audioCtx.state === "suspended") await audioCtx.resume();
-  ambienceOn = !ambienceOn;
-  const now = audioCtx.currentTime;
-  masterGain.gain.cancelScheduledValues(now);
-  masterGain.gain.setTargetAtTime(ambienceOn ? 0.07 : 0.0001, now, 1.4);
-  ambienceBtn.classList.toggle("is-on", ambienceOn);
-  ambienceBtn.setAttribute("aria-pressed", String(ambienceOn));
+function fadeAmbience(target, duration, onComplete) {
+  if (fadeTween) fadeTween.kill();
+  fadeTween = gsap.to(ambienceAudio, {
+    volume: target,
+    duration,
+    ease: target > ambienceAudio.volume ? "power2.out" : "power2.in",
+    overwrite: true,
+    onComplete: () => {
+      fadeTween = null;
+      if (onComplete) onComplete();
+    },
+  });
+}
+
+function failAmbience(message) {
+  if (fadeTween) {
+    fadeTween.kill();
+    fadeTween = null;
+  }
+  ambienceOn = false;
+  syncAmbienceUI(false);
+  ambienceAudio.pause();
+  ambienceAudio.volume = 0;
+  const now = Date.now();
+  if (now - errorToastAt > 4000) {
+    errorToastAt = now;
+    showToast(message);
+  }
+  console.warn("Ambience:", message);
+}
+
+async function startAmbience() {
+  const token = ++toggleToken;
+  ambienceOn = true;
+  syncAmbienceUI(true);
+  if (fadeTween) {
+    fadeTween.kill();
+    fadeTween = null;
+  }
+  ambienceAudio.volume = 0;
+  if (ambienceAudio.error) ambienceAudio.load();
+  try {
+    await ambienceAudio.play();
+    if (token !== toggleToken) {
+      if (!ambienceOn) ambienceAudio.pause();
+      return;
+    }
+    if (!ambienceOn) {
+      ambienceAudio.pause();
+      return;
+    }
+    fadeAmbience(AMBIENCE_VOLUME, 1.5);
+  } catch (err) {
+    if (token !== toggleToken) return;
+    failAmbience("couldn't start the ambience — please try again");
+  }
+}
+
+function stopAmbience() {
+  const token = ++toggleToken;
+  ambienceOn = false;
+  syncAmbienceUI(false);
+  if (ambienceAudio.paused) {
+    if (fadeTween) {
+      fadeTween.kill();
+      fadeTween = null;
+    }
+    ambienceAudio.volume = 0;
+    return;
+  }
+  fadeAmbience(0, 0.9, () => {
+    if (token !== toggleToken) return;
+    ambienceAudio.pause();
+    ambienceAudio.volume = 0;
+  });
+}
+
+ambienceBtn?.addEventListener("click", () => {
+  if (ambienceOn) stopAmbience();
+  else startAmbience();
+});
+
+ambienceAudio.addEventListener("play", () => {
+  if (!ambienceOn) {
+    ambienceOn = true;
+    syncAmbienceUI(true);
+    fadeAmbience(AMBIENCE_VOLUME, 1.5);
+  }
+});
+
+ambienceAudio.addEventListener("pause", () => {
+  if (!ambienceOn) return;
+  ambienceOn = false;
+  syncAmbienceUI(false);
+  if (fadeTween) {
+    fadeTween.kill();
+    fadeTween = null;
+  }
+});
+
+ambienceAudio.addEventListener("error", () => {
+  if (ambienceOn) failAmbience("couldn't load the ambience — please try again later");
 });
 
 /* ══════════════════════════════════════════════════════════════
