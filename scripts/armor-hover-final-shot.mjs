@@ -1,0 +1,21 @@
+﻿import { chromium } from "playwright";
+const browser = await chromium.launch({ channel: "chrome", headless: true });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 3 });
+await page.goto("http://127.0.0.1:5173/?v=hover2#join", { waitUntil: "networkidle" });
+await page.waitForTimeout(7000);
+await page.evaluate(() => window.scrollBy(0, 30));
+await page.waitForTimeout(700);
+const box = await page.locator(".warrior-wrap").first().boundingBox();
+await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.42);
+await page.waitForTimeout(900);
+await page.locator(".join__squad-row").screenshot({ path: "C:/Users/nisho/AppData/Local/Temp/opencode/shots/i01-armor-hover-row.png" });
+await page.screenshot({ path: "C:/Users/nisho/AppData/Local/Temp/opencode/shots/i02-armor-hover-page.png" });
+const info = await page.evaluate(() => {
+  const w = document.querySelector(".warrior-wrap");
+  const h = w.querySelector(".warrior__head").getBoundingClientRect();
+  const torso = w.querySelector(".warrior__torso").getBoundingClientRect();
+  const hips = w.querySelector(".warrior__hips").getBoundingClientRect();
+  return { headY: h.y, torsoY: torso.y, hipsY: hips.y, cls: w.className, cursor: document.querySelector('.cursor').className };
+});
+console.log(info);
+await browser.close();

@@ -1,0 +1,12 @@
+﻿import { chromium } from "playwright";
+const browser = await chromium.launch({ channel: "chrome", headless: true });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+const errors = [];
+page.on("pageerror", (e) => errors.push(e.message));
+page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
+await page.goto("https://miami-capable-bestsellers-engines.trycloudflare.com/?v=5#join", { waitUntil: "networkidle", timeout: 60000 });
+await page.waitForTimeout(7000);
+const info = await page.evaluate(() => ({ title: document.title, scrollY: Math.round(scrollY), joinTop: document.getElementById("join")?.offsetTop, squadCount: document.querySelectorAll(".warrior-wrap").length, cursorDisplay: getComputedStyle(document.getElementById("cursor")).display }));
+await page.screenshot({ path: "C:/Users/nisho/AppData/Local/Temp/opencode/shots/t01-tunnel-join.png" });
+console.log(JSON.stringify({ errors, info }, null, 2));
+await browser.close();

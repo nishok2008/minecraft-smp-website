@@ -1,0 +1,18 @@
+﻿import { chromium } from "playwright";
+import fs from "fs";
+const dir = "C:/Users/nisho/AppData/Local/Temp/opencode/shots/video";
+fs.rmSync(dir, { recursive: true, force: true });
+fs.mkdirSync(dir, { recursive: true });
+const browser = await chromium.launch({ channel: "chrome", headless: true });
+const context = await browser.newContext({ viewport: { width: 1440, height: 900 }, recordVideo: { dir, size: { width: 1440, height: 900 } } });
+const page = await context.newPage();
+await page.goto("http://127.0.0.1:5173/?v=video#join", { waitUntil: "networkidle" });
+await page.waitForTimeout(7000);
+await page.mouse.move(1050, 600);
+await page.waitForTimeout(600);
+await page.mouse.click(1050, 600);
+await page.waitForTimeout(1400);
+const video = page.video();
+await context.close();
+await browser.close();
+console.log(await video.path());

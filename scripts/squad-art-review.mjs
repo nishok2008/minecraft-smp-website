@@ -1,0 +1,37 @@
+﻿import { chromium } from "playwright";
+const browser = await chromium.launch({ channel: "chrome", headless: true });
+const page = await browser.newPage({ viewport: { width: 1440, height: 900 }, deviceScaleFactor: 3 });
+const errors = [];
+page.on("console", (msg) => { if (msg.type() === "error") errors.push(msg.text()); });
+page.on("pageerror", (err) => errors.push(String(err)));
+await page.goto("http://127.0.0.1:5173/?v=art1#join", { waitUntil: "networkidle" });
+await page.waitForTimeout(7000);
+await page.evaluate(() => document.querySelector("#join")?.scrollIntoView({ block: "start" }));
+await page.waitForTimeout(2200);
+const box = await page.locator(".join__squad-row").boundingBox();
+console.log("row", box, "scrollY", await page.evaluate(() => scrollY));
+await page.locator(".join__squad-row").screenshot({ path: "C:/Users/nisho/AppData/Local/Temp/opencode/shots/a01-rest-3x.png" });
+await page.evaluate(() => window.scrollBy(0, 210));
+await page.waitForTimeout(2200);
+console.log("mid scrollY", await page.evaluate(() => scrollY));
+await page.locator(".join__squad-row").screenshot({ path: "C:/Users/nisho/AppData/Local/Temp/opencode/shots/a02-mid-3x.png" });
+await page.evaluate(() => window.scrollBy(0, 220));
+await page.waitForTimeout(2200);
+console.log("raised scrollY", await page.evaluate(() => scrollY));
+await page.locator(".join__squad-row").screenshot({ path: "C:/Users/nisho/AppData/Local/Temp/opencode/shots/a03-raised-3x.png" });
+await page.evaluate(() => window.scrollBy(0, -430));
+await page.waitForTimeout(1800);
+await page.screenshot({ path: "C:/Users/nisho/AppData/Local/Temp/opencode/shots/a04-viewport-rest.png" });
+const info = await page.evaluate(() => {
+  const row = document.querySelector(".join__squad-row").getBoundingClientRect();
+  const wrap = document.querySelector(".warrior-wrap").getBoundingClientRect();
+  const eyes = [...document.querySelectorAll(".warrior__eyes rect")].slice(0, 2).map((el) => {
+    const r = el.getBoundingClientRect();
+    return { w: r.width, h: r.height, fill: getComputedStyle(el).fill };
+  });
+  const sweep = document.querySelector(".warrior__sweep");
+  return { row: { x: row.x, y: row.y, w: row.width, h: row.height }, wrap: { w: wrap.width, h: wrap.height }, eyes, sweepOpacity: getComputedStyle(sweep).opacity };
+});
+console.log(JSON.stringify(info, null, 2));
+console.log("errors", errors);
+await browser.close();
