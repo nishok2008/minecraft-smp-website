@@ -1,4 +1,4 @@
-# ⛏️ NISHOK-SMP
+# ⛏️ MINECRAFT-SMP-WEBSITE
 
 A cinematic Minecraft-inspired website featuring an interactive voxel world, immersive visuals, and ambient music.
 
